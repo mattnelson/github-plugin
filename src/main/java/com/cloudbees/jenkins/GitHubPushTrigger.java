@@ -158,8 +158,12 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
 
     private boolean createJenkinsHook(GHRepository repo, URL url) {
         try {
-            repo.createHook("jenkins", Collections.singletonMap("jenkins_hook_url", url.toExternalForm()), null, true);
-            return true;
+            if (repo.hasAdminAccess()) {
+                repo.createHook("jenkins", Collections.singletonMap("jenkins_hook_url", url.toExternalForm()), null, true);
+                return true;
+            }
+            LOGGER.log(Level.INFO, "Unable to add webhook, insufficient privileges");
+            return false;
         } catch (IOException e) {
             throw new GHException("Failed to update jenkins hooks", e);
         }
